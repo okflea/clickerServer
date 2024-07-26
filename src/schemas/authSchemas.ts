@@ -9,6 +9,7 @@ export const registerSchema = z.object({
   password: z.string()
     .min(6, { message: 'Password must be at least 6 characters long' })
     .max(50, { message: 'Password must be at most 50 characters long' }),
+  isAdmin: z.boolean().default(false).optional(),
 });
 
 export const loginSchema = z.object({
