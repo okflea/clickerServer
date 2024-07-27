@@ -13,7 +13,7 @@ export const createUser = async (req: Request, res: Response) => {
     const salt = await bcrypt.genSalt(10);
     const hashedPassword = await bcrypt.hash(password, salt);
     const user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, isAdmin, status: "OFFLINE" },
+      data: { name, email, password: hashedPassword, isAdmin, status: "OFFLINE", score: 0 },
     });
     res.status(201).json(user);
   } catch (err) {
@@ -110,9 +110,9 @@ export const getUsers = async (req: Request, res: Response) => {
     }
     const users = await prisma.user.findMany({
       where: {
-        id: {
-          not: req.user?.id
-        }
+      },
+      orderBy: {
+        score: 'desc'
       },
       select: {
         id: true,

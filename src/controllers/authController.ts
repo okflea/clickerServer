@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user = await prisma.user.create({
-      data: { name, email, password: hashedPassword, isAdmin, isBlocked: false, status: "ONLINE" },
+      data: { name, score: 0, email, password: hashedPassword, isAdmin, isBlocked: false, status: "ONLINE" },
     });
     const { password: serverPassword, ...userWithoutPassword } = user
     const payload = { user: { id: user.id } };
