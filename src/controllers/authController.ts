@@ -18,7 +18,7 @@ export const register = async (req: Request, res: Response) => {
     const hashedPassword = await bcrypt.hash(password, salt);
 
     user = await prisma.user.create({
-      data: { name, score: 0, email, password: hashedPassword, isAdmin, isBlocked: false, status: "ONLINE" },
+      data: { name, score: 0, email, password: hashedPassword, isAdmin, isBlocked: false },
     });
     const { password: serverPassword, ...userWithoutPassword } = user
     const payload = { user: { id: user.id } };
@@ -55,8 +55,6 @@ export const login = async (req: Request, res: Response) => {
 
     const payload = { user: { id: userWithoutPassword.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '48h' });
-    //update status
-    await prisma.user.update({ where: { id: userWithoutPassword.id }, data: { status: "ONLINE" } });
     res.json({ token, ...userWithoutPassword });
   } catch (err) {
 
@@ -69,16 +67,6 @@ export const login = async (req: Request, res: Response) => {
   }
 };
 
-//logout
-export const logout = async (req: Request, res: Response) => {
-  try {
-    const user = await prisma.user.update({ where: { id: req.user?.id }, data: { status: "OFFLINE" } });
-    res.json({ message: 'User logged out successfully' });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Server error' });
-  }
-};
 //authenticate 
 export const authenticate = async (req: Request, res: Response) => {
   try {

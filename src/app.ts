@@ -2,14 +2,15 @@ import express from 'express';
 import cors from 'cors';
 import { PrismaClient } from '@prisma/client';
 import { createServer } from 'http';
+var morgan = require('morgan');
 
 import authRoutes from './routes/auth';
-import logoutRoute from './routes/logout';
 import userRoute from './routes/users';
 import meRoute from './routes/me';
 import { Server } from 'socket.io';
 
 const app = express();
+app.use(morgan('combined'))
 //socket.io
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -22,35 +23,56 @@ const io = new Server(httpServer, {
 io.on("connection", (socket) => {
   console.log("Socket connected: " + socket.id);
 
-  socket.on('bananaClick', async ({ userId }) => {
-    try {
-      // Update the user's score in the database
-      const updatedUser = await prisma.user.update({
-        where: { id: userId },
-        data: {
-          score: { increment: 1 },
-        },
-        select: { id: true, name: true, score: true },
-      });
-
-      // Emit the updated score back to the client
-      socket.emit('scoreUpdate', updatedUser.score);
-
-      // Optionally, update high scores for all connected clients
-      const highScores = await prisma.user.findMany({
-        select: {
-          id: true, status: true, name: true, score: true, email: true, isBlocked: true, isAdmin: true, createdAt: true
-        },
-        orderBy: { score: 'desc' },
-        take: 10
-      });
-      // console.log(highScores);
-
-      socket.emit('highScoresUpdate', highScores);
-    } catch (error) {
-      console.error('Error updating score:', error);
-    }
+  socket.on('login', async (userId: string) => {
+    await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        status: "ONLINE"
+      }
+    })
   });
+
+  socket.on('logout', async (userId: string) => {
+    await prisma.user.update({
+      where: {
+        id: userId
+      },
+      data: {
+        status: "OFFLINE"
+      }
+    })
+  });
+
+  socket.on("updateScore", async (data) => {
+    //increment score 
+    await prisma.user.update({
+      where: {
+        id: data?.userId
+      },
+      data: {
+        score: {
+          increment: 1
+        }
+      }
+    })
+
+    //emit score update
+    const highScores = await prisma.user.findMany({
+      orderBy: {
+        score: 'desc'
+      },
+      take: 10,
+      select: {
+        id: true,
+        name: true,
+        score: true,
+        status: true
+      }
+    })
+    io.emit("highScores", highScores)
+  })
 });
 
 //global prisma instance
@@ -61,7 +83,6 @@ app.use(express.json());
 
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoute);
-app.use('/api/logout', logoutRoute);
 app.use('/api/me', meRoute);
 
 const PORT = process.env.PORT || 5000;
