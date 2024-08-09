@@ -121,6 +121,7 @@ export const getUsers = async (req: Request, res: Response) => {
         isAdmin: true,
         isBlocked: true,
         status: true,
+        bananas: true,
         createdAt: true,
         updatedAt: true,
         score: true,

@@ -13,14 +13,32 @@ enum Status {
 }
 
 model User {
-  id        String   @id @default(auto()) @map("_id") @db.ObjectId
-  email     String   @unique
+  id        String     @id @default(auto()) @map("_id") @db.ObjectId
+  email     String     @unique
   password  String
   name      String?
-  isAdmin   Boolean  @default(false)
-  isBlocked Boolean  @default(false)
-  status    Status   @default(OFFLINE)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-  score     Int      @default(0)
+  isAdmin   Boolean    @default(false)
+  isBlocked Boolean    @default(false)
+  status    Status     @default(OFFLINE)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  score     Int        @default(0)
+  bananas   Int        @default(0)
+  upgrades  Upgrades[]
+}
+
+enum UpgradeType {
+  MONKEY
+  LAB
+}
+
+model Upgrades {
+  id        String      @id @default(auto()) @map("_id") @db.ObjectId
+  level     Int
+  type      UpgradeType
+  createdAt DateTime    @default(now())
+  updatedAt DateTime    @updatedAt
+
+  User   User?   @relation(fields: [userId], references: [id])
+  userId String? @db.ObjectId
 }

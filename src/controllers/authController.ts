@@ -20,6 +20,21 @@ export const register = async (req: Request, res: Response) => {
     user = await prisma.user.create({
       data: { name, score: 0, email, password: hashedPassword, isAdmin, isBlocked: false },
     });
+    //create initial level 0 upgrades
+    await prisma.upgrades.create({
+      data: {
+        userId: user.id,
+        level: 0,
+        type: "LAB"
+      }
+    })
+    await prisma.upgrades.create({
+      data: {
+        userId: user.id,
+        level: 0,
+        type: "MONKEY"
+      }
+    })
     const { password: serverPassword, ...userWithoutPassword } = user
     const payload = { user: { id: user.id } };
     const token = jwt.sign(payload, process.env.JWT_SECRET as string, { expiresIn: '48h' });
@@ -81,7 +96,8 @@ export const authenticate = async (req: Request, res: Response) => {
         status: true,
         createdAt: true,
         updatedAt: true,
-        score: true
+        score: true,
+        bananas: true
       }
     });
     res.json(user);

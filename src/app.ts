@@ -7,10 +7,11 @@ var morgan = require('morgan');
 import authRoutes from './routes/auth';
 import userRoute from './routes/users';
 import meRoute from './routes/me';
+import upgradeRoute from './routes/upgrades';
 import { Server } from 'socket.io';
 
 const app = express();
-app.use(morgan('combined'))
+// app.use(morgan('combined'))
 //socket.io
 const httpServer = createServer(app);
 const io = new Server(httpServer, {
@@ -53,7 +54,10 @@ io.on("connection", (socket) => {
       },
       data: {
         score: {
-          increment: 1
+          increment: data?.inc
+        },
+        bananas: {
+          increment: data?.inc
         }
       }
     })
@@ -68,6 +72,7 @@ io.on("connection", (socket) => {
         id: true,
         name: true,
         score: true,
+        bananas: true,
         status: true
       }
     })
@@ -84,7 +89,7 @@ app.use(express.json());
 app.use('/api/auth', authRoutes);
 app.use('/api/users', userRoute);
 app.use('/api/me', meRoute);
-
+app.use('/api/upgrade', upgradeRoute);
 const PORT = process.env.PORT || 5000;
 
 httpServer.listen(PORT, () => {
